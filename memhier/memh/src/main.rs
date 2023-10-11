@@ -85,6 +85,10 @@ fn main() {
     for x in 0..config_lines.len()-1{
         if config_lines[x].contains("Data TLB configuration") {
             println!("{}", config_lines[x]);
+            if (config_lines[x+1].contains("Number of sets")){
+                let sets = config_lines[x+1].split(":")
+                println!("{}", sets.remainder())
+            }
         }
         else if config_lines[x].contains("Page Table configuration") {
             println!("{}", config_lines[x]);

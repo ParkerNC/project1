@@ -1,0 +1,31 @@
+Data TLB contains 2 sets.
+Each set contains 1 entries.
+Number of bits used for the index is 1.
+
+Number of virtual pages is 8192.
+Number of physical pages is 1024.
+Each page contains 1048576 bytes.
+Number of bits used for the page table index is 13.
+Number of bits used for the page offset is 20.
+
+D-cache contains 4 sets.
+Each set contains 1 entries.
+Each line is 16 bytes.
+The cache uses a write-allocate and write-back policy.
+Number of bits used for the index is 2.
+Number of bits used for the offset is 4.
+
+L2-cache contains 16 sets.
+Each set contains 4 entries.
+Each line is 16 bytes.
+The cache uses a write-allocate and write-back policy.
+Number of bits used for the index is 4.
+Number of bits used for the offset is 4.
+
+The addresses read in are physical addresses.
+TLB is disabled in this configuration.
+L2 cache is disabled in this configuration.
+
+Virtual  Virt.  Page TLB    TLB TLB  PT   Pyhs        DC  DC          L2  L2  
+Address  Page # Off  Tag    Ind Res. Res. Pg # DC Tag Ind Res. L2 Tag Ind Res.
+-------- ------ ---- ------ --- ---- ---- ---- ------ --- ---- ------ --- ----
