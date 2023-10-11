@@ -54,7 +54,10 @@ class PT():
         self.miss = 0
 
 
+
+
 def initialize(tlb: TLB, dc: DC, l2: L2, pt: PT, file: list) -> None:
+
     for i, opt in enumerate(file):
         if "Data TLB configuration" in opt:
             if "Number of sets:" in file[i+1]:
@@ -213,6 +216,76 @@ def initialize(tlb: TLB, dc: DC, l2: L2, pt: PT, file: list) -> None:
     
     print("")
 
+def dcOnly(dc: DC, address: int, type: str, offset: int, t: int, access, l2: L2) -> str:
+
+    dcTag = address >> (dc.index + dc.offset)
+
+    dcIndexMask = (1 << dc.index) -1
+
+    dcIndex = (address >> dc.offset) & dcIndexMask
+
+    result = access(dc, address, dcTag, offset, dcIndex, type, t)
+
+    dcRes = ""
+
+    if result == 1:
+        dc.hits += 1
+        dcRes = "hit"
+        
+    else:
+        dcRes = "miss"
+        dc.miss += 1
+
+    return dcTag, dcIndex, dcRes, "", "", ""
+    
+
+def l2dc(dc: DC, address: int, type: str, offset: int,  t: int, access, l2: L2) -> None:
+    dcTag = address >> (dc.index + dc.offset)
+
+    dcIndexMask = (1 << dc.index) -1
+
+    dcIndex = (address >> dc.offset) & dcIndexMask
+
+    l2Tag = address >> (l2.index + l2.offset)
+
+    l2IndexMask = (1 << l2.index) -1
+
+    l2Index = (address >> l2.offset) & l2IndexMask
+
+    result = access(dc, address, dcTag, offset, dcIndex, type, t)
+
+    dcRes = ""
+    l2Res = ""
+
+    if result == 1:
+        dc.hits += 1
+        dcRes = "hit"
+        l2result = access(l2, address, l2Tag, offset, l2Index, type, t)
+        if l2result != 0:
+            pass
+        else:
+            l2.miss +=1
+    elif result == 2:
+        dc.hits += 1
+        dcRes = "hit"
+        l2result = access(l2, address, l2Tag, offset, l2Index, type, t)
+        if l2result != 0:
+            pass
+        else:
+            l2.miss +=1
+    else:
+        dcRes = "miss"
+        dc.miss += 1
+        l2result = access(l2, address, l2Tag, offset, l2Index, type, t)
+        if l2result != 0:
+            l2.hits +=1
+            l2Res = "hit"
+        else:
+            l2.miss +=1
+            l2Res = "miss"
+
+    return dcTag, dcIndex, dcRes, l2Tag, l2Index, l2Res
+
 def accessWriteBack(dc: DC, address: int, tag: int, offset: int, index: int, type: str, t: float) -> int:
 
     blockNum = index % len(dc.cache)
@@ -221,23 +294,19 @@ def accessWriteBack(dc: DC, address: int, tag: int, offset: int, index: int, typ
     for i, bSet in enumerate(dc.cache[blockNum]):        
         if bSet == -1:
             dc.cache[blockNum][i] = (tag, index, offset, t)
-            if type == "W":
-                return 2
             return 0
         elif bSet[0] == tag:
             dc.cache[blockNum][i] = (tag, index, offset, t)
+            if type == "W":
+                return 2
             return 1
         else:
             if old > bSet[3]:
                 old = bSet[3]
 
-
-
     for i, bSet in enumerate(dc.cache[blockNum]):
         if bSet[3] == old:
             dc.cache[blockNum][i] = (tag, index, offset, t)
-            if type == "W":
-                return 2
             return 0
         
 def accessWriteThrough(dc: DC, address: int, tag: int, offset: int, index: int, type: str, t: float) -> int:
@@ -280,17 +349,17 @@ if __name__ == "__main__":
     initialize(tlb, dc, l2, pt, options)
 
     dcAccess = None
-    l2Access = None
-
-    if dc.writeBack == True:
+    if dc.writeBack:
         dcAccess = accessWriteBack
     else:
         dcAccess = accessWriteThrough
 
-    if l2.writeBack == True:
-        l2Access = accessWriteBack
-    else:
-        l2Access = accessWriteThrough
+    l2Access = None
+
+    accessfunction = dcOnly
+
+    if l2.active:
+        accessfunction = l2dc
 
     add = "Virtual"
     if pt.active == False:
@@ -309,18 +378,7 @@ if __name__ == "__main__":
 
         pageMask = (1 << pt.offset) - 1
         pageOffset = addNum & pageMask
-
-        dcTag = addNum >> (dc.index + dc.offset)
-
-        dcIndexMask = (1 << dc.index) -1
-
-        dcIndex = (addNum >> dc.offset) & dcIndexMask
-
         pPageNum = (addNum >> pt.offset)
-
-        strl2Index = ""
-        strl2Tag = ""
-        l2Res = ""
 
         if acctype == "R":
             reads += 1
@@ -332,14 +390,15 @@ if __name__ == "__main__":
 
         t = time()
 
-        dcRes = "miss"
+        dcTag, dcIndex, dcRes, strl2Tag, strl2Index, l2Res = accessfunction(dc, addNum, acctype, pageOffset, t, dcAccess, l2)
 
-        result = dcAccess(dc, addNum, dcTag, pageOffset, dcIndex, acctype, t)
-        if result == 1:
-            dc.hits += 1
-            dcRes = "hit"
+        if l2Res == "":
+            strl2Index = ""
+            strl2Tag = ""
         else:
-            dc.miss += 1
+            strl2Tag = hex(strl2Tag)[2:]
+            strl2Index = hex(strl2Index)[2:]
+
 
         """
                 result = dcAccess(dc, addNum, dcTag, pageOffset, dcIndex, acctype, t)

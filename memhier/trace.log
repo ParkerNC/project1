@@ -6,44 +6,15 @@ read at 0000014c
 
 read at 00000c84
 
-write at 00000400
-
-read at 00000148
-writing back DC line with tag 10 and index 0 to memory
-
-read at 00000144
-
-read at 00000c80
-
-write at 00000008
-
-write at 00000c84
-writing back DC line with tag 0 and index 0 to memory
-
-write at 0000081c
-
-read at 0000014c
-writing back DC line with tag 32 and index 0 to memory
-
-read at 00000c84
-
 read at 00000400
 
-write at 00000148
+read at 00000148
 
 read at 00000144
 
 read at 00000c80
-writing back DC line with tag 5 and index 0 to memory
 
 read at 00000008
-
-read at 00000123
-
-write at 000001ff
-
-read at 00000c11
-writing back DC line with tag 20 and index 1 to memory
 
 read at 00000c84
 
@@ -53,42 +24,61 @@ read at 0000014c
 
 read at 00000c84
 
-write at 00000400
-
-read at 00000148
-writing back DC line with tag 10 and index 0 to memory
-
-read at 00000144
-
-read at 00000c80
-
-write at 00000008
-
-write at 00000c84
-writing back DC line with tag 0 and index 0 to memory
-
-write at 0000081c
-
-read at 0000014c
-writing back DC line with tag 32 and index 0 to memory
-
-read at 00000c84
-
 read at 00000400
 
-write at 00000148
+read at 00000148
 
 read at 00000144
 
 read at 00000c80
-writing back DC line with tag 5 and index 0 to memory
 
 read at 00000008
 
 read at 00000123
 
-write at 000001ff
+read at 000001ff
 
 read at 00000c11
-writing back DC line with tag 20 and index 1 to memory
+
+read at 00000c84
+
+read at 0000081c
+
+read at 0000014c
+
+read at 00000c84
+
+read at 00000400
+
+read at 00000148
+
+read at 00000144
+
+read at 00000c80
+
+read at 00000008
+
+read at 00000c84
+
+read at 0000081c
+
+read at 0000014c
+
+read at 00000c84
+
+read at 00000400
+
+read at 00000148
+
+read at 00000144
+
+read at 00000c80
+
+read at 00000008
+
+read at 00000123
+
+read at 000001ff
+
+read at 00000c11
 
