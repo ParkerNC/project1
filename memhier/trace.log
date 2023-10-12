@@ -1,96 +1,200 @@
-read at 00000c84
+read at 000000e0
 
-read at 0000081c
+write at 000000ab
+
+write at 00000266
+
+read at 00000151
+
+write at 0000010b
+
+write at 000003e6
+
+write at 0000012d
+
+write at 00000268
+
+read at 000002c4
+
+read at 00000126
+
+write at 000002f7
+
+read at 0000029e
+
+write at 0000026c
+
+write at 0000014e
+
+read at 00000080
+
+read at 0000005b
+
+read at 00000124
+
+read at 000001f4
+
+read at 00000348
+
+write at 000000ac
+
+write at 00000234
+
+read at 000000c2
+
+write at 00000217
+
+read at 000000fb
+
+read at 000001cd
+
+read at 00000167
+
+write at 000003df
+
+write at 000001ef
+
+write at 000002ee
+
+read at 000003c0
+
+write at 00000206
+
+write at 000002a6
+
+write at 0000039b
+
+write at 00000203
+
+write at 000000d8
+
+write at 0000022d
+
+read at 00000049
+
+write at 0000016b
+
+write at 000000c0
+
+write at 00000255
+
+read at 000000b0
+
+write at 00000362
+
+read at 0000033e
+
+write at 00000360
+
+read at 000001b1
+
+read at 00000364
+
+write at 00000233
+
+write at 00000140
+
+read at 0000025c
+
+read at 000000fa
+
+read at 000000d4
+
+write at 000002fb
+
+write at 000002a2
+
+write at 00000255
+
+write at 00000226
+
+write at 00000139
+
+write at 0000026b
+
+write at 00000339
+
+write at 000003b8
+
+write at 00000315
+
+write at 00000080
+
+write at 00000070
+
+write at 00000118
+
+write at 000000ea
+
+write at 000003f8
+
+write at 00000380
+
+write at 000002d1
+
+write at 0000018e
+
+write at 00000393
+
+write at 00000332
+
+read at 0000010f
+
+read at 0000039c
+
+write at 000001fa
+
+write at 0000026a
+
+write at 0000000c
+
+read at 00000052
+
+read at 000001f7
+
+read at 00000042
+
+read at 00000143
+
+read at 000000db
+
+write at 0000009c
+
+write at 00000319
+
+read at 000000c4
+
+write at 00000340
+
+write at 000001a5
+
+read at 0000028e
+
+read at 000000a5
+
+write at 000000ff
+
+write at 000000e0
+
+read at 00000396
+
+read at 000001ec
+
+write at 00000030
+
+write at 00000133
+
+write at 000001d1
 
 read at 0000014c
 
-read at 00000c84
+read at 00000192
 
-write at 00000400
+read at 00000171
 
-read at 00000148
+read at 0000017b
 
-read at 00000144
+read at 0000007a
 
-read at 00000c80
-
-write at 00000008
-writing back DC line with tag 6 and index 0 to L2 cache
-writing back L2 line with tag 6 and index 0 to memory
-
-write at 00000c84
-
-write at 0000081c
-
-read at 0000014c
-
-read at 00000c84
-
-read at 00000400
-writing back DC line with tag 4 and index 0 to L2 cache
-writing back L2 line with tag 4 and index 0 to memory
-
-write at 00000148
-
-read at 00000144
-
-read at 00000c80
-
-read at 00000008
-
-read at 00000123
-
-write at 000001ff
-
-read at 00000c11
-writing back DC line with tag 2 and index 1 to L2 cache
-writing back L2 line with tag 2 and index 1 to memory
-
-read at 00000c84
-
-read at 0000081c
-
-read at 0000014c
-
-read at 00000c84
-
-write at 00000400
-
-read at 00000148
-
-read at 00000144
-
-read at 00000c80
-
-write at 00000008
-writing back DC line with tag 6 and index 0 to L2 cache
-writing back L2 line with tag 6 and index 0 to memory
-
-write at 00000c84
-
-write at 0000081c
-
-read at 0000014c
-
-read at 00000c84
-
-read at 00000400
-writing back DC line with tag 4 and index 0 to L2 cache
-writing back L2 line with tag 4 and index 0 to memory
-
-write at 00000148
-
-read at 00000144
-
-read at 00000c80
-
-read at 00000008
-
-read at 00000123
-
-write at 000001ff
-
-read at 00000c11
-writing back DC line with tag 2 and index 1 to L2 cache
-writing back L2 line with tag 2 and index 1 to memory
+write at 00000247
 

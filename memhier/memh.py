@@ -215,8 +215,8 @@ def initialize(tlb: TLB, dc: DC, l2: L2, pt: PT, file: list) -> None:
 
     l2.cache = [ [-1]*l2.ass for _ in range(l2.setNum) ]
 
-    pt.pcache = [ [-1] for _ in range(pt.pPages)]
-    pt.vcache = [ [-1] for _ in range(pt.vPages)]
+    pt.pcache = [ -1 for _ in range(pt.pPages)]
+    pt.vcache = [ -1 for _ in range(pt.vPages)]
     
     print("")
 
@@ -297,7 +297,7 @@ def ptAcess(pt: PT, address: int, typ: str, offset: int, t: int) -> bool:
     vIndex = (address >> pt.offset) & vIndexMask
     vpn = address >> pt.offset
     vRes = ""
-    pPageNum = 0
+    pPageNum = -1
 
 
     vcacheNum = vIndex % len(pt.vcache)
@@ -306,24 +306,36 @@ def ptAcess(pt: PT, address: int, typ: str, offset: int, t: int) -> bool:
     else:
         pt.vcache[vcacheNum] = vTag
 
+    old = t
+
     for i, page in enumerate(pt.pcache):
-        if page[0] == -1:
+        if page == -1:
             vRes = "miss"
             pt.miss +=1 
-            pt.pcache[i][0] = vpn
+            pt.pcache[i] = (vpn, t)
             pPageNum = i
             break
         elif page[0] == vpn:
             pt.hits +=1
+            pt.pcache[i] = (vpn, t)
             pPageNum = i
             vRes = "hit"
             break
-            
-
-    return pPageNum, vpn, vRes
+        else:
+            if old > page[1]:
+                old = page[1]
     
+    if pPageNum != -1:
+        pAdd = address & ((1 << pt.offset)-1)
+        pAdd = (pPageNum << pt.offset) | pAdd
+        return pAdd, pPageNum, vpn, vRes
+    for i, page in enumerate(pt.pcache): 
+        if page[1] == old:
+            pt.pcache[i] = (vpn, t)
+            break
 
-
+    return pAdd, pPageNum, vpn, vRes
+    
 
 
 def accessWriteBack(dc: DC, address: int, tag: int, offset: int, index: int, type: str, t: float) -> int:
@@ -434,7 +446,8 @@ if __name__ == "__main__":
         ptRes = ""
 
         if pt.active:
-            pPageNum, vPageNum, ptRes = ptAcess(pt, addNum, acctype, pageOffset, t)
+            addNum, pPageNum, vPageNum, ptRes = ptAcess(pt, addNum, acctype, pageOffset, t)
+            vPageNum = hex(vPageNum)[2:]
 
         dcTag, dcIndex, dcRes, strl2Tag, strl2Index, l2Res = accessfunction(dc, addNum, acctype, pageOffset, t, dcAccess, l2)
 
@@ -452,16 +465,33 @@ if __name__ == "__main__":
     print("")
     print("Simulation statistics")
     print("")
+    
+    print(f"{'pt hits':<17}: {pt.hits}")
+    print(f"{'pt faults':<17}: {pt.miss}")
+    ptRat = "N/A"
+    if pt.active:
+        ptRat = pt.hits/(pt.miss + pt.hits)
+        print(f"{'pt hit ratio':<17}: {ptRat:6f}")
+    else:
+        print(f"{'pt hit ratio':<17}: {ptRat}")
+    print("")
+
     print(f"{'dc hits':<17}: {dc.hits}")
     print(f"{'dc misses':<17}: {dc.miss}")
     dcRat = dc.hits/(dc.miss + dc.hits)
     print(f"{'dc hit ratio':<17}: {dcRat:6f}")
     print("")
+
     print(f"{'L2 hits':<17}: {l2.hits}")
     print(f"{'L2 misses':<17}: {l2.miss}")
-    #l2Rat = l2.hits/(l2.miss + l2.hits)
-    #print(f"{'L2 hit ratio':<17}: {l2Rat:6f}")
+    l2Rat = "N/A"
+    if l2.active:
+        l2Rat = l2.hits/(l2.miss + l2.hits)
+        print(f"{'L2 hit ratio':<17}: {l2Rat:6f}")
+    else:
+        print(f"{'L2 hit ratio':<17}: {l2Rat}")
     print("")
+
     print(f"{'Total reads':<17}: {reads}")
     print(f"{'Total writes':<17}: {writes}")
     rwRat = reads/(reads + writes)
