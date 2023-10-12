@@ -6,7 +6,7 @@ read at 0000014c
 
 read at 00000c84
 
-read at 00000400
+write at 00000400
 
 read at 00000148
 
@@ -14,19 +14,23 @@ read at 00000144
 
 read at 00000c80
 
-read at 00000008
+write at 00000008
+writing back DC line with tag 6 and index 0 to L2 cache
+writing back L2 line with tag 6 and index 0 to memory
 
-read at 00000c84
+write at 00000c84
 
-read at 0000081c
+write at 0000081c
 
 read at 0000014c
 
 read at 00000c84
 
 read at 00000400
+writing back DC line with tag 4 and index 0 to L2 cache
+writing back L2 line with tag 4 and index 0 to memory
 
-read at 00000148
+write at 00000148
 
 read at 00000144
 
@@ -36,9 +40,11 @@ read at 00000008
 
 read at 00000123
 
-read at 000001ff
+write at 000001ff
 
 read at 00000c11
+writing back DC line with tag 2 and index 1 to L2 cache
+writing back L2 line with tag 2 and index 1 to memory
 
 read at 00000c84
 
@@ -48,7 +54,7 @@ read at 0000014c
 
 read at 00000c84
 
-read at 00000400
+write at 00000400
 
 read at 00000148
 
@@ -56,19 +62,23 @@ read at 00000144
 
 read at 00000c80
 
-read at 00000008
+write at 00000008
+writing back DC line with tag 6 and index 0 to L2 cache
+writing back L2 line with tag 6 and index 0 to memory
 
-read at 00000c84
+write at 00000c84
 
-read at 0000081c
+write at 0000081c
 
 read at 0000014c
 
 read at 00000c84
 
 read at 00000400
+writing back DC line with tag 4 and index 0 to L2 cache
+writing back L2 line with tag 4 and index 0 to memory
 
-read at 00000148
+write at 00000148
 
 read at 00000144
 
@@ -78,7 +88,9 @@ read at 00000008
 
 read at 00000123
 
-read at 000001ff
+write at 000001ff
 
 read at 00000c11
+writing back DC line with tag 2 and index 1 to L2 cache
+writing back L2 line with tag 2 and index 1 to memory
 

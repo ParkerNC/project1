@@ -1,4 +1,4 @@
-from pprint import pprint
+
 import math
 import sys
 from time import time
@@ -42,12 +42,13 @@ class L2():
         self.miss = 0
 
 class PT():
-    def __init__(self, physicalPages: int = 1024, virtualPages: int = 8192, page_size: int = 0, active: bool = True, cache: list = [], index: int = 0, offset: int = 0) -> None:
+    def __init__(self, physicalPages: int = 1024, virtualPages: int = 8192, page_size: int = 0, active: bool = True, index: int = 0, offset: int = 0) -> None:
         self.pPages = physicalPages
         self.vPages = virtualPages
         self.pageSize = page_size
         self.active = active
-        self.cache = cache
+        self.vcache = []
+        self.pcache = []
         self.index = index
         self.offset = offset
         self.hits = 0
@@ -213,6 +214,9 @@ def initialize(tlb: TLB, dc: DC, l2: L2, pt: PT, file: list) -> None:
     dc.cache = [ [-1]*dc.ass for _ in range(dc.setNum) ]
 
     l2.cache = [ [-1]*l2.ass for _ in range(l2.setNum) ]
+
+    pt.pcache = [ [-1] for _ in range(pt.pPages)]
+    pt.vcache = [ [-1] for _ in range(pt.vPages)]
     
     print("")
 
@@ -284,7 +288,43 @@ def l2dc(dc: DC, address: int, type: str, offset: int,  t: int, access, l2: L2) 
             l2.miss +=1
             l2Res = "miss"
 
-    return dcTag, dcIndex, dcRes, l2Tag, l2Index, l2Res
+    return dcTag, dcIndex, dcRes, l2Tag, l2Index, l2Res    
+
+def ptAcess(pt: PT, address: int, typ: str, offset: int, t: int) -> bool:
+
+    vTag = address >> (pt.index + pt.offset)  
+    vIndexMask = (1 << dc.index) -1
+    vIndex = (address >> pt.offset) & vIndexMask
+    vpn = address >> pt.offset
+    vRes = ""
+    pPageNum = 0
+
+
+    vcacheNum = vIndex % len(pt.vcache)
+    if pt.vcache[vcacheNum] == -1:
+        pt.vcache[vcacheNum] = vTag
+    else:
+        pt.vcache[vcacheNum] = vTag
+
+    for i, page in enumerate(pt.pcache):
+        if page[0] == -1:
+            vRes = "miss"
+            pt.miss +=1 
+            pt.pcache[i][0] = vpn
+            pPageNum = i
+            break
+        elif page[0] == vpn:
+            pt.hits +=1
+            pPageNum = i
+            vRes = "hit"
+            break
+            
+
+    return pPageNum, vpn, vRes
+    
+
+
+
 
 def accessWriteBack(dc: DC, address: int, tag: int, offset: int, index: int, type: str, t: float) -> int:
 
@@ -390,6 +430,12 @@ if __name__ == "__main__":
 
         t = time()
 
+        vPageNum = ""
+        ptRes = ""
+
+        if pt.active:
+            pPageNum, vPageNum, ptRes = ptAcess(pt, addNum, acctype, pageOffset, t)
+
         dcTag, dcIndex, dcRes, strl2Tag, strl2Index, l2Res = accessfunction(dc, addNum, acctype, pageOffset, t, dcAccess, l2)
 
         if l2Res == "":
@@ -400,54 +446,7 @@ if __name__ == "__main__":
             strl2Index = hex(strl2Index)[2:]
 
 
-        """
-                result = dcAccess(dc, addNum, dcTag, pageOffset, dcIndex, acctype, t)
-        if result == 1:
-            dc.hits += 1
-            dcRes = "hit"
-            if l2Access(l2, addNum, l2Tag, pageOffset, l2Index, acctype, t) == 1:
-                l2.hits +=1
-            else:
-                l2.miss +=1
-        elif result == 0:
-            l2Tag = addNum >> (l2.index + l2.offset)
-            l2IndexMask = (1 << l2.index) -1
-            l2Index = (addNum >> l2.offset) & l2IndexMask
-
-            if l2Access(l2, addNum, l2Tag, pageOffset, l2Index, acctype, t) == 1:
-                l2.hits +=1
-                l2Res = "hit"
-            else:
-                l2.miss +=1
-                l2Res = "miss"
-
-            dc.miss += 1
-
-            strl2Index = hex(l2Index)[2:]
-            strl2Tag = hex(l2Tag)[2:]
-
-        elif result == 2:
-            l2Tag = addNum >> (l2.index + l2.offset)
-            l2IndexMask = (1 << l2.index) -1
-            l2Index = (addNum >> l2.offset) & l2IndexMask
-
-            l2res = l2Access(l2, addNum, l2Tag, pageOffset, l2Index, acctype, t)
-            if l2res == 1:
-                l2.hits +=2
-                l2Res = "hit"
-            elif l2res == 0:
-                l2.miss +=1
-                l2Res = "miss"
-
-
-            dc.miss += 1
-
-            strl2Index = hex(l2Index)[2:]
-            strl2Tag = hex(l2Tag)[2:]
-        """
-
-
-        print(f"{address:0>8} {' ':<6} {hex(pageOffset)[2:]:>4} {' ':<6} {' ':<3} {' ':<4} {' ':<4} {hex(pPageNum)[2:]:>4} {hex(dcTag)[2:]:>6} {hex(dcIndex)[2:]:>3} {dcRes:<4} {strl2Tag:>6} {strl2Index:>3} {l2Res:<4}")
+        print(f"{address:0>8} {vPageNum:>6} {hex(pageOffset)[2:]:>4} {' ':<6} {' ':<3} {' ':<4} {ptRes:<4} {hex(pPageNum)[2:]:>4} {hex(dcTag)[2:]:>6} {hex(dcIndex)[2:]:>3} {dcRes:<4} {strl2Tag:>6} {strl2Index:>3} {l2Res:<4}")
 
 
     print("")
