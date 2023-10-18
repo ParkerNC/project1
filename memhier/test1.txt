@@ -2,30 +2,155 @@ Data TLB contains 2 sets.
 Each set contains 1 entries.
 Number of bits used for the index is 1.
 
-Number of virtual pages is 8192.
+Number of virtual pages is 2048.
 Number of physical pages is 1024.
-Each page contains 1048576 bytes.
-Number of bits used for the page table index is 13.
-Number of bits used for the page offset is 20.
+Each page contains 32768 bytes.
+Number of bits used for the page table index is 11.
+Number of bits used for the page offset is 15.
 
-D-cache contains 4 sets.
-Each set contains 1 entries.
-Each line is 16 bytes.
-The cache uses a write-allocate and write-back policy.
-Number of bits used for the index is 2.
-Number of bits used for the offset is 4.
-
-L2-cache contains 16 sets.
+D-cache contains 1024 sets.
 Each set contains 4 entries.
 Each line is 16 bytes.
 The cache uses a write-allocate and write-back policy.
-Number of bits used for the index is 4.
+Number of bits used for the index is 10.
 Number of bits used for the offset is 4.
 
-The addresses read in are physical addresses.
-TLB is disabled in this configuration.
-L2 cache is disabled in this configuration.
+L2-cache contains 2048 sets.
+Each set contains 4 entries.
+Each line is 16 bytes.
+The cache uses a write-allocate and write-back policy.
+Number of bits used for the index is 11.
+Number of bits used for the offset is 4.
 
-Virtual  Virt.  Page TLB    TLB TLB  PT   Pyhs        DC  DC          L2  L2  
+The addresses read in are virtual addresses.
+TLB is disabled in this configuration.
+
+Virtual  Virt.  Page TLB    TLB TLB  PT   Phys        DC  DC          L2  L2
 Address  Page # Off  Tag    Ind Res. Res. Pg # DC Tag Ind Res. L2 Tag Ind Res.
 -------- ------ ---- ------ --- ---- ---- ---- ------ --- ---- ------ --- ----
+000925ef     12 25ef                 miss    0      0 25e miss      0 25e miss
+00088a3c     11  a3c                 miss    1      2  a3 miss      1  a3 miss
+000ce128     19 6128                 miss    2      5 212 miss      2 612 miss
+000e5c56     1c 5c56                 miss    3      7 1c5 miss      3 5c5 miss
+00045f50      8 5f50                 miss    4      9 1f5 miss      4 5f5 miss
+00079905      f 1905                 miss    5      a 190 miss      5 190 miss
+0008cc00     11 4c00                 hit     1      3  c0 miss      1 4c0 miss
+0005003b      a   3b                 miss    6      c   3 miss      6   3 miss
+00020072      4   72                 miss    7      e   7 miss      7   7 miss
+000c5576     18 5576                 miss    8     11 157 miss      8 557 miss
+000fc4a9     1f 44a9                 miss    9     13  4a miss      9 44a miss
+0008e4d9     11 64d9                 hit     1      3 24d miss      1 64d miss
+000cf762     19 7762                 hit     2      5 376 miss      2 776 miss
+000db0bc     1b 30bc                 miss    a     14 30b miss      a 30b miss
+00059aaf      b 1aaf                 miss    b     16 1aa miss      b 1aa miss
+0003ad3b      7 2d3b                 miss    c     18 2d3 miss      c 2d3 miss
+0003a755      7 2755                 hit     c     18 275 miss      c 275 miss
+0009b1ca     13 31ca                 miss    d     1a 31c miss      d 31c miss
+000365b2      6 65b2                 miss    e     1d 25b miss      e 65b miss
+00064a98      c 4a98                 miss    f     1f  a9 miss      f 4a9 miss
+0008f49f     11 749f                 hit     1      3 349 miss      1 749 miss
+000f6c76     1e 6c76                 miss   10     21 2c7 miss     10 6c7 miss
+000e4304     1c 4304                 hit     3      7  30 miss      3 430 miss
+000b3b25     16 3b25                 miss   11     22 3b2 miss     11 3b2 miss
+0008851c     11  51c                 hit     1      2  51 miss      1  51 miss
+00084b89     10 4b89                 miss   12     25  b8 miss     12 4b8 miss
+000b64e0     16 64e0                 hit    11     23 24e miss     11 64e miss
+0002d7a9      5 57a9                 miss   13     27 17a miss     13 57a miss
+00072edc      e 2edc                 miss   14     28 2ed miss     14 2ed miss
+000e6503     1c 6503                 hit     3      7 250 miss      3 650 miss
+00060cbc      c  cbc                 hit     f     1e  cb miss      f  cb miss
+0001803d      3   3d                 miss   15     2a   3 miss     15   3 miss
+000fcdba     1f 4dba                 hit     9     13  db miss      9 4db miss
+00052e09      a 2e09                 hit     6      c 2e0 miss      6 2e0 miss
+00021149      4 1149                 hit     7      e 114 miss      7 114 miss
+000b298c     16 298c                 hit    11     22 298 miss     11 298 miss
+0005c0fb      b 40fb                 hit     b     17   f miss      b 40f miss
+0004eeb7      9 6eb7                 miss   16     2d 2eb miss     16 6eb miss
+00071391      e 1391                 hit    14     28 139 miss     14 139 miss
+000aadd4     15 2dd4                 miss   17     2e 2dd miss     17 2dd miss
+000d2871     1a 2871                 miss   18     30 287 miss     18 287 miss
+000b646f     16 646f                 hit    11     23 246 miss     11 646 miss
+000d7e82     1a 7e82                 hit    18     31 3e8 miss     18 7e8 miss
+00009080      1 1080                 miss   19     32 108 miss     19 108 miss
+000f1b91     1e 1b91                 hit    10     20 1b9 miss     10 1b9 miss
+0002acc4      5 2cc4                 hit    13     26 2cc miss     13 2cc miss
+000467d5      8 67d5                 hit     4      9 27d miss      4 67d miss
+000dc75b     1b 475b                 hit     a     15  75 miss      a 475 miss
+000e5360     1c 5360                 hit     3      7 136 miss      3 536 miss
+00096ef1     12 6ef1                 hit     0      1 2ef miss      0 6ef miss
+00000473      0  473                 miss   1a     34  47 miss     1a  47 miss
+000a48fc     14 48fc                 miss   1b     37  8f miss     1b 48f miss
+000ecedc     1d 4edc                 miss   1c     39  ed miss     1c 4ed miss
+0006b523      d 3523                 miss   1d     3a 352 miss     1d 352 miss
+00027ad2      4 7ad2                 hit     7      f 3ad miss      7 7ad miss
+000bbcf5     17 3cf5                 miss   1e     3c 3cf miss     1e 3cf miss
+00052942      a 2942                 hit     6      c 294 miss      6 294 miss
+000d0f7a     1a  f7a                 hit    18     30  f7 miss     18  f7 miss
+0000699c      0 699c                 hit    1a     35 299 miss     1a 699 miss
+000d9783     1b 1783                 hit     a     14 178 miss      a 178 miss
+000f8c08     1f  c08                 hit     9     12  c0 miss      9  c0 miss
+000b3723     16 3723                 hit    11     22 372 miss     11 372 miss
+000f79b0     1e 79b0                 hit    10     21 39b miss     10 79b miss
+00085b20     10 5b20                 hit    12     25 1b2 miss     12 5b2 miss
+0000d1e1      1 51e1                 hit    19     33 11e miss     19 51e miss
+0006df2c      d 5f2c                 hit    1d     3b 1f2 miss     1d 5f2 miss
+0007fbcd      f 7bcd                 hit     5      b 3bc miss      5 7bc miss
+000ad0d6     15 50d6                 hit    17     2f 10d miss     17 50d miss
+000ae93e     15 693e                 hit    17     2f 293 miss     17 693 miss
+00011bcf      2 1bcf                 miss   1f     3e 1bc miss     1f 1bc miss
+00074506      e 4506                 hit    14     29  50 miss     14 450 miss
+00069ce3      d 1ce3                 hit    1d     3a 1ce miss     1d 1ce miss
+00059feb      b 1feb                 hit     b     16 1fe miss      b 1fe miss
+0003bd06      7 3d06                 hit     c     18 3d0 miss      c 3d0 miss
+00094293     12 4293                 hit     0      1  29 miss      0 429 miss
+000191d2      3 11d2                 hit    15     2a 11d miss     15 11d miss
+0006b568      d 3568                 hit    1d     3a 356 miss     1d 356 miss
+0000e9eb      1 69eb                 hit    19     33 29e miss     19 69e miss
+000bb4f1     17 34f1                 hit    1e     3c 34f miss     1e 34f miss
+0007210e      e 210e                 hit    14     28 210 miss     14 210 miss
+0007e546      f 6546                 hit     5      b 254 miss      5 654 miss
+0005161a      a 161a                 hit     6      c 161 miss      6 161 miss
+000c79af     18 79af                 hit     8     11 39a miss      8 79a miss
+000a7e16     14 7e16                 hit    1b     37 3e1 miss     1b 7e1 miss
+000519c9      a 19c9                 hit     6      c 19c miss      6 19c miss
+00078821      f  821                 hit     5      a  82 miss      5  82 miss
+0003893c      7  93c                 hit     c     18  93 miss      c  93 miss
+00088115     11  115                 hit     1      2  11 miss      1  11 miss
+000b4ac6     16 4ac6                 hit    11     23  ac miss     11 4ac miss
+000a1aa7     14 1aa7                 hit    1b     36 1aa miss     1b 1aa miss
+000846ab     10 46ab                 hit    12     25  6a miss     12 46a miss
+000b08b6     16  8b6                 hit    11     22  8b miss     11  8b miss
+00013ea5      2 3ea5                 hit    1f     3e 3ea miss     1f 3ea miss
+000a0c12     14  c12                 hit    1b     36  c1 miss     1b  c1 miss
+000f7def     1e 7def                 hit    10     21 3de miss     10 7de miss
+0001a34a      3 234a                 hit    15     2a 234 miss     15 234 miss
+00011b00      2 1b00                 hit    1f     3e 1b0 miss     1f 1b0 miss
+00096985     12 6985                 hit     0      1 298 miss      0 698 miss
+0000214d      0 214d                 hit    1a     34 214 miss     1a 214 miss
+000c78be     18 78be                 hit     8     11 38b miss      8 78b miss
+
+Simulation statistics
+
+dtlb hits        : 0
+dtlb misses      : 0
+dtlb hit ratio   : N/A
+
+pt hits          : 68
+pt faults        : 32
+pt hit ratio     : 0.680000
+
+dc hits          : 0
+dc misses        : 100
+dc hit ratio     : 0.000000
+
+L2 hits          : 0
+L2 misses        : 100
+L2 hit ratio     : 0.000000
+
+Total reads      : 43
+Total writes     : 57
+Ratio of reads   : 0.430000
+
+main memory refs : 100
+page table refs  : 100
+disk refs        : 32
