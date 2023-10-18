@@ -10,6 +10,7 @@ mainRef = 0
 pageRef = 0
 diskRef = 0
 
+
 class TLB():
     def __init__(self, setNum: int = 256, ass: int = 8, active: bool = True, cache: list = [], index: int = 0) -> None:
         self.setNum = setNum
@@ -201,9 +202,13 @@ def initialize(tlb: TLB, dc: DC, l2: L2, pt: PT, file: list) -> None:
                 pt.active = False
                 print("The addresses read in are physical addresses.")
 
+
         elif "TLB:" in opt:
             if "y" in opt.split(": ")[1]:
                 tlb.active = True
+                if tlb.active == True and pt.active == False:
+                    print("hierarchy: TLB cannot be enabled when virtual addresses are disabled")
+                    exit(2)
             else:
                 tlb.active = False     
                 print("TLB is disabled in this configuration.")
@@ -235,16 +240,41 @@ def dcOnly(dc: DC, address: int, type: str, offset: int, t: int, access, l2: L2)
     dcIndex = (address >> dc.offset) & dcIndexMask
 
     result = access(dc, address, dcTag, offset, dcIndex, type, t)
+    global mainRef
+    global compulse
 
     dcRes = ""
 
     if result == 1:
+        #read hit
         dc.hits += 1
+        mainRef +=1
         dcRes = "hit"
+    elif result == 2:
+        #write hit
+        dc.hits += 1
+        mainRef +=1
+        dcRes = "hit"
+    elif result == 3:
+        #replace write miss
+        dc.miss += 1
+        mainRef +=2
+        dcRes = "miss"
+    elif result == 4:
+        #compulsory read miss
+        dc.miss += 1
         
+        dcRes = "miss"
+    elif result == 5:
+        #compulsory write msis
+        dc.miss += 2
+        dcRes = "miss"
+        mainRef +=1
     else:
+        #replace read miss
         dcRes = "miss"
         dc.miss += 1
+        
 
     return dcTag, dcIndex, dcRes, "", "", ""
     
@@ -405,7 +435,9 @@ def accessWriteBack(dc: DC, address: int, tag: int, offset: int, index: int, typ
     for i, bSet in enumerate(dc.cache[blockNum]):        
         if bSet == -1:
             dc.cache[blockNum][i] = (tag, index, offset, t)
-            return 0
+            if type == "W":
+                return 5
+            return 4
         elif bSet[0] == tag:
             dc.cache[blockNum][i] = (tag, index, offset, t)
             if type == "W":
@@ -418,6 +450,8 @@ def accessWriteBack(dc: DC, address: int, tag: int, offset: int, index: int, typ
     for i, bSet in enumerate(dc.cache[blockNum]):
         if bSet[3] == old:
             dc.cache[blockNum][i] = (tag, index, offset, t)
+            if type == "W":
+                return 3
             return 0
         
 def accessWriteThrough(dc: DC, address: int, tag: int, offset: int, index: int, type: str, t: float) -> int:
@@ -580,4 +614,5 @@ if __name__ == "__main__":
     print(f"{'main memory refs':<17}: {mainRef}")
     print(f"{'page table refs':<17}: {pageRef}")
     print(f"{'disk refs':<17}: {diskRef}")
+
 
