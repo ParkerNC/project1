@@ -6,6 +6,10 @@ from time import time
 reads = 0
 writes = 0
 
+mainRef = 0
+pageRef = 0
+diskRef = 0
+
 class TLB():
     def __init__(self, setNum: int = 256, ass: int = 8, active: bool = True, cache: list = [], index: int = 0) -> None:
         self.setNum = setNum
@@ -217,6 +221,8 @@ def initialize(tlb: TLB, dc: DC, l2: L2, pt: PT, file: list) -> None:
 
     pt.pcache = [ -1 for _ in range(pt.pPages)]
     pt.vcache = [ -1 for _ in range(pt.vPages)]
+
+    tlb.cache = [ [-1]*tlb.ass for _ in range(tlb.setNum) ]
     
     print("")
 
@@ -290,7 +296,7 @@ def l2dc(dc: DC, address: int, type: str, offset: int,  t: int, access, l2: L2) 
 
     return dcTag, dcIndex, dcRes, l2Tag, l2Index, l2Res    
 
-def ptAcess(pt: PT, address: int, typ: str, offset: int, t: int) -> bool:
+def ptAcess(pt: PT, address: int, typ: str, offset: int, t: int, tlb) -> list:
 
     vTag = address >> (pt.index + pt.offset)  
     vIndexMask = (1 << dc.index) -1
@@ -298,19 +304,39 @@ def ptAcess(pt: PT, address: int, typ: str, offset: int, t: int) -> bool:
     vpn = address >> pt.offset
     vRes = ""
     pPageNum = -1
+    tlbIndex = ""
+    tlbTag = ""
+    tlbRes = ""
+    global pageRef
+    global diskRef
 
 
     vcacheNum = vIndex % len(pt.vcache)
     if pt.vcache[vcacheNum] == -1:
         pt.vcache[vcacheNum] = vTag
-    else:
+    elif pt.vcache[vcacheNum] == vTag:
         pt.vcache[vcacheNum] = vTag
 
+    if tlb.active:
+        tlbRes, tlbTag, tlbIndex = tlbaccess(tlb, pt, address, offset, t)
+        if tlbRes == "hit":
+            for i, page in enumerate(pt.pcache):
+                if page[0] == vpn:
+                    pt.pcache[i] = (vpn, t)
+                    pPageNum = i
+                    break
+
+            pAdd = address & ((1 << pt.offset)-1)
+            pAdd = (pPageNum << pt.offset) | pAdd
+            return pAdd, pPageNum, vpn, vRes, tlbRes, tlbTag, tlbIndex
+
     old = t
+    pageRef +=1
 
     for i, page in enumerate(pt.pcache):
         if page == -1:
             vRes = "miss"
+            diskRef +=1
             pt.miss +=1 
             pt.pcache[i] = (vpn, t)
             pPageNum = i
@@ -328,14 +354,47 @@ def ptAcess(pt: PT, address: int, typ: str, offset: int, t: int) -> bool:
     if pPageNum != -1:
         pAdd = address & ((1 << pt.offset)-1)
         pAdd = (pPageNum << pt.offset) | pAdd
-        return pAdd, pPageNum, vpn, vRes
+        return pAdd, pPageNum, vpn, vRes, tlbRes, tlbTag, tlbIndex
+    
     for i, page in enumerate(pt.pcache): 
         if page[1] == old:
             pt.pcache[i] = (vpn, t)
+            pt.miss +=1
+            diskRef +=1
+            vRes = "miss"
+            pAdd = address & ((1 << pt.offset)-1)
+            pAdd = (pPageNum << pt.offset) | pAdd
             break
 
-    return pAdd, pPageNum, vpn, vRes
-    
+    return pAdd, pPageNum, vpn, vRes, tlbRes, tlbTag, tlbIndex
+
+def tlbaccess(tlb: TLB, pt: PT, address: int, offset: int, t) -> list:
+    tag = address >> (tlb.index + pt.offset)
+
+    IndexMask = (1 << tlb.index) -1
+
+    index = (address >> pt.offset) & IndexMask
+    blockNum = index % len(tlb.cache)
+    old = t
+
+    for i, bSet in enumerate(tlb.cache[blockNum]):        
+        if bSet == -1:
+            tlb.cache[blockNum][i] = (tag, index, t)
+            tlb.miss +=1
+            return "miss", tag, index
+        elif bSet[0] == tag:
+            tlb.hits +=1
+            tlb.cache[blockNum][i] = (tag, index, t)
+            return "hit", tag, index
+        else:
+            if old > bSet[2]:
+                old = bSet[2]
+
+    for i, bSet in enumerate(tlb.cache[blockNum]):
+        if bSet[2] == old:
+            tlb.miss +=1
+            tlb.cache[blockNum][i] = (tag, index, t)
+            return "miss", tag, index
 
 
 def accessWriteBack(dc: DC, address: int, tag: int, offset: int, index: int, type: str, t: float) -> int:
@@ -428,6 +487,10 @@ if __name__ == "__main__":
         acctype = acc[0]
         addNum = int(address, 16)
 
+        if (addNum >> pt.offset) > pt.pageSize or (addNum >> pt.index + pt.offset):
+            print(f"hierarchy: virtual address {hex(addNum)[2:]} is too large")
+            exit(2)
+
         pageMask = (1 << pt.offset) - 1
         pageOffset = addNum & pageMask
         pPageNum = (addNum >> pt.offset)
@@ -444,10 +507,16 @@ if __name__ == "__main__":
 
         vPageNum = ""
         ptRes = ""
+        tlbRes = ""
+        tlbTag = ""
+        tlbIndex = ""
 
         if pt.active:
-            addNum, pPageNum, vPageNum, ptRes = ptAcess(pt, addNum, acctype, pageOffset, t)
+            addNum, pPageNum, vPageNum, ptRes, tlbRes, tlbTag, tlbIndex = ptAcess(pt, addNum, acctype, pageOffset, t, tlb)
             vPageNum = hex(vPageNum)[2:]
+            if tlb.active:
+                tlbTag = hex(tlbTag)[2:]
+                tlbIndex = hex(tlbIndex)[2:]
 
         dcTag, dcIndex, dcRes, strl2Tag, strl2Index, l2Res = accessfunction(dc, addNum, acctype, pageOffset, t, dcAccess, l2)
 
@@ -459,11 +528,21 @@ if __name__ == "__main__":
             strl2Index = hex(strl2Index)[2:]
 
 
-        print(f"{address:0>8} {vPageNum:>6} {hex(pageOffset)[2:]:>4} {' ':<6} {' ':<3} {' ':<4} {ptRes:<4} {hex(pPageNum)[2:]:>4} {hex(dcTag)[2:]:>6} {hex(dcIndex)[2:]:>3} {dcRes:<4} {strl2Tag:>6} {strl2Index:>3} {l2Res:<4}")
+        print(f"{address:0>8} {vPageNum:>6} {hex(pageOffset)[2:]:>4} {tlbTag:>6} {tlbIndex:>3} {tlbRes:<4} {ptRes:<4} {hex(pPageNum)[2:]:>4} {hex(dcTag)[2:]:>6} {hex(dcIndex)[2:]:>3} {dcRes:<4} {strl2Tag:>6} {strl2Index:>3} {l2Res:<4}")
 
 
     print("")
     print("Simulation statistics")
+    print("")
+
+    print(f"{'dtlb hits':<17}: {tlb.hits}")
+    print(f"{'dtlb misses':<17}: {tlb.miss}")
+    dtlbRat = "N/A"
+    if tlb.active:
+        dtlbRat = tlb.hits/(tlb.miss + tlb.hits)
+        print(f"{'dtlb hit ratio':<17}: {dtlbRat:6f}")
+    else:
+        print(f"{'dtlb hit ratio':<17}: {dtlbRat}")
     print("")
     
     print(f"{'pt hits':<17}: {pt.hits}")
@@ -496,4 +575,9 @@ if __name__ == "__main__":
     print(f"{'Total writes':<17}: {writes}")
     rwRat = reads/(reads + writes)
     print(f"{'Ratio of reads':<17}: {rwRat:6f}")
+    print("")
+
+    print(f"{'main memory refs':<17}: {mainRef}")
+    print(f"{'page table refs':<17}: {pageRef}")
+    print(f"{'disk refs':<17}: {diskRef}")
 
