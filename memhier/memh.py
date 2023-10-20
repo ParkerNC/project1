@@ -6,7 +6,6 @@ from time import time
 reads = 0
 writes = 0
 
-mainRef = 0
 pageRef = 0
 diskRef = 0
 
@@ -32,6 +31,7 @@ class DC():
         self.offset = offset
         self.hits = 0
         self.miss = 0
+        self.ref = 0
 
 class L2():
     def __init__(self, setNum: int = 8192, ass: int = 8, active: bool = True, block_size: int = 8, write_back: bool = True, cache: list = [], index: int = 0, offset: int = 0) -> None:
@@ -45,6 +45,8 @@ class L2():
         self.offset = offset
         self.hits = 0
         self.miss = 0
+        self.ref = 0
+
 
 class PT():
     def __init__(self, physicalPages: int = 1024, virtualPages: int = 8192, page_size: int = 0, active: bool = True, index: int = 0, offset: int = 0) -> None:
@@ -69,16 +71,16 @@ def initialize(tlb: TLB, dc: DC, l2: L2, pt: PT, file: list) -> None:
             if "Number of sets:" in file[i+1]:
                 tlb.setNum = int(file[i+1].split(": ")[1])
                 if tlb.setNum > 256:
-                    print("hierarchy: error - number of dtlb sets requested exceeds MAXTLBSETS")
+                    print("hierarchy: error - number of dtlb sets requested exceeds MAXTLBSETS", file=sys.stderr)
                     exit(2)
                 if (tlb.setNum & (tlb.setNum-1) != 0) or tlb.setNum == 0:
-                    print("hierarchy: number of dtlb sets is not a power of two")
+                    print("hierarchy: number of dtlb sets is not a power of two", file=sys.stderr)
                     exit(2)
                 print(f"Data TLB contains {tlb.setNum} sets.")
             if "Set size:" in file[i+ 2]:
                 tlb.ass = int(file[i+2].split(": ")[1])
                 if tlb.ass > 8:
-                    print("hierarchy: error - dtlb set size requested exceeds MAXSETSIZE")
+                    print("hierarchy: error - dtlb set size requested exceeds MAXSETSIZE", file=sys.stderr)
                     exit(2)
                 print(f"Each set contains {tlb.ass} entries.")
 
@@ -91,25 +93,25 @@ def initialize(tlb: TLB, dc: DC, l2: L2, pt: PT, file: list) -> None:
             if "Number of virtual pages:" in file[i+1]:
                 pt.vPages = int(file[i+1].split(": ")[1])
                 if pt.vPages > 8192:
-                    print("hierarchy: error - number of virtual pages requested exceeds MAXVIRTPAGES")
+                    print("hierarchy: error - number of virtual pages requested exceeds MAXVIRTPAGES", file=sys.stderr)
                     exit(2)
                 if (pt.vPages & (pt.vPages-1) != 0) or pt.vPages == 0:
-                    print("hierarchy: number of virtual pages is not a power of two")
+                    print("hierarchy: number of virtual pages is not a power of two", file=sys.stderr)
                     exit(2)
                 print(f"Number of virtual pages is {pt.vPages}.")
             if "Number of physical pages:" in file[i+2]:
                 pt.pPages = int(file[i+2].split(": ")[1])
                 if pt.pPages > 1024:
-                    print("hierarchy: error - number of physical pages requested exceeds MAXPHYPAGES")
+                    print("hierarchy: error - number of physical pages requested exceeds MAXPHYPAGES", file=sys.stderr)
                     exit(2)
                 if (pt.pPages & (pt.pPages-1) != 0) or pt.pPages == 0:
-                    print("hierarchy: number of physical pages is not a power of two")
+                    print("hierarchy: number of physical pages is not a power of two", file=sys.stderr)
                     exit(2)
                 print(f"Number of physical pages is {pt.pPages}.")
             if "Page size:" in file[i+3]:
                 pt.pageSize = int(file[i+3].split(": ")[1])
                 if (pt.pageSize & (pt.pageSize-1) != 0) or pt.pageSize == 0:
-                    print("hierarchy: page size is not a power of two")
+                    print("hierarchy: page size is not a power of two", file=sys.stderr)
                     exit(2)
                 print(f"Each page contains {pt.pageSize} bytes.")
 
@@ -124,22 +126,22 @@ def initialize(tlb: TLB, dc: DC, l2: L2, pt: PT, file: list) -> None:
             if "Number of sets:" in file[i+1]:
                 dc.setNum = int(file[i+1].split(": ")[1])
                 if dc.setNum > 8192:
-                    print("hierarchy: error - number of dc sets requested exceeds MAXDCSETS")
+                    print("hierarchy: error - number of dc sets requested exceeds MAXDCSETS", file=sys.stderr)
                     exit(2)
                 if (dc.setNum & (dc.setNum-1) != 0) or dc.setNum == 0:
-                    print("hierarchy: number of dc sets is not a power of two")
+                    print("hierarchy: number of dc sets is not a power of two", file=sys.stderr)
                     exit(2)
                 print(f"D-cache contains {dc.setNum} sets.")
             if "Set size:" in file[i+2]:
                 dc.ass = int(file[i+2].split(": ")[1])
                 if dc.ass > 8:
-                    print("hierarchy: error - data cache set size requested exceeds MAXSETSIZE")
+                    print("hierarchy: error - data cache set size requested exceeds MAXSETSIZE", file=sys.stderr)
                     exit(2)
                 print(f"Each set contains {dc.ass} entries.")
             if "Line size:" in  file[i+3]:
                 dc.blockSize = int(file[i+3].split(': ')[1])
                 if (dc.blockSize & (dc.blockSize-1) != 0) or dc.blockSize == 0:
-                    print("hierarchy: number of bytes in dc line is not a power of two")
+                    print("hierarchy: number of bytes in dc line is not a power of two", file=sys.stderr)
                     exit(2)
                 print(f"Each line is {dc.blockSize} bytes.")
             if "Write through" in file[i+4]:
@@ -161,22 +163,22 @@ def initialize(tlb: TLB, dc: DC, l2: L2, pt: PT, file: list) -> None:
             if "Number of sets:" in file[i+1]:
                 l2.setNum = int(file[i+1].split(": ")[1])
                 if (l2.setNum & (l2.setNum-1) != 0) or l2.setNum == 0:
-                    print("hierarchy: number of L2 sets is not a power of two")
+                    print("hierarchy: number of L2 sets is not a power of two", file=sys.stderr)
                     exit(2)
                 print(f"L2-cache contains {l2.setNum} sets.")
             if "Set size:" in file[i+2]:
                 l2.ass = int(file[i+2].split(": ")[1])
                 if l2.ass > 8:
-                    print("hierarchy: error - L2 cache set size requested exceeds MAXSETSIZE")
+                    print("hierarchy: error - L2 cache set size requested exceeds MAXSETSIZE", file=sys.stderr)
                     exit(2)
                 print(f"Each set contains {l2.ass} entries.")
             if "Line size:" in  file[i+3]:
                 l2.blockSize = int(file[i+3].split(': ')[1])
                 if (dc.blockSize > l2.blockSize):
-                    print("hierarchy: L2 cache line size must be >= to the data cache line size")
+                    print("hierarchy: L2 cache line size must be >= to the data cache line size", file=sys.stderr)
                     exit(2)
                 if (l2.blockSize & (l2.blockSize-1) != 0) or l2.blockSize == 0:
-                    print("hierarchy: number of bytes in L2 line is not a power of two")
+                    print("hierarchy: number of bytes in L2 line is not a power of two", file=sys.stderr)
                     exit(2)
                 print(f"Each line is {l2.blockSize} bytes.")
             if "Write through" in file[i+4]:
@@ -207,7 +209,7 @@ def initialize(tlb: TLB, dc: DC, l2: L2, pt: PT, file: list) -> None:
             if "y" in opt.split(": ")[1]:
                 tlb.active = True
                 if tlb.active == True and pt.active == False:
-                    print("hierarchy: TLB cannot be enabled when virtual addresses are disabled")
+                    print("hierarchy: TLB cannot be enabled when virtual addresses are disabled", file=sys.stderr)
                     exit(2)
             else:
                 tlb.active = False     
@@ -231,7 +233,7 @@ def initialize(tlb: TLB, dc: DC, l2: L2, pt: PT, file: list) -> None:
     
     print("")
 
-def dcOnly(dc: DC, address: int, type: str, offset: int, t: int, access, l2: L2) -> str:
+def dcOnly(dc: DC, address: int, type: str, offset: int, t: int, access, l2: L2, l2access) -> str:
 
     dcTag = address >> (dc.index + dc.offset)
 
@@ -240,46 +242,19 @@ def dcOnly(dc: DC, address: int, type: str, offset: int, t: int, access, l2: L2)
     dcIndex = (address >> dc.offset) & dcIndexMask
 
     result = access(dc, address, dcTag, offset, dcIndex, type, t)
-    global mainRef
-    global compulse
 
     dcRes = ""
 
-    if result == 1:
-        #read hit
-        dc.hits += 1
-        mainRef +=1
+    if result:
         dcRes = "hit"
-    elif result == 2:
-        #write hit
-        dc.hits += 1
-        mainRef +=1
-        dcRes = "hit"
-    elif result == 3:
-        #replace write miss
-        dc.miss += 1
-        mainRef +=2
-        dcRes = "miss"
-    elif result == 4:
-        #compulsory read miss
-        dc.miss += 1
-        
-        dcRes = "miss"
-    elif result == 5:
-        #compulsory write msis
-        dc.miss += 2
-        dcRes = "miss"
-        mainRef +=1
     else:
-        #replace read miss
         dcRes = "miss"
-        dc.miss += 1
         
 
     return dcTag, dcIndex, dcRes, "", "", ""
     
 
-def l2dc(dc: DC, address: int, type: str, offset: int,  t: int, access, l2: L2) -> None:
+def l2dc(dc: DC, address: int, type: str, offset: int,  t: int, access, l2: L2, l2access) -> list:
     dcTag = address >> (dc.index + dc.offset)
 
     dcIndexMask = (1 << dc.index) -1
@@ -297,6 +272,25 @@ def l2dc(dc: DC, address: int, type: str, offset: int,  t: int, access, l2: L2) 
     dcRes = ""
     l2Res = ""
 
+    if result:
+        dcRes = "hit"
+        l2result = l2access(l2, address, l2Tag, offset, l2Index, type, t)
+        if not dc.writeBack and type == "W":
+            if l2result:
+                l2Res = "hit"
+            else:
+                l2Res = "miss"
+        
+    else:
+        dcRes = "miss"
+        l2result = l2access(l2, address, l2Tag, offset, l2Index, type, t)
+        if l2result:
+            l2Res = "hit"
+        else:
+            l2Res = "miss"
+
+
+    """
     if result == 1:
         dc.hits += 1
         dcRes = "hit"
@@ -323,6 +317,8 @@ def l2dc(dc: DC, address: int, type: str, offset: int,  t: int, access, l2: L2) 
         else:
             l2.miss +=1
             l2Res = "miss"
+
+    """
 
     return dcTag, dcIndex, dcRes, l2Tag, l2Index, l2Res    
 
@@ -427,7 +423,8 @@ def tlbaccess(tlb: TLB, pt: PT, address: int, offset: int, t) -> list:
             return "miss", tag, index
 
 
-def accessWriteBack(dc: DC, address: int, tag: int, offset: int, index: int, type: str, t: float) -> int:
+def accessWriteBack(dc: DC, address: int, tag: int, offset: int, index: int, type: str, t: float) -> bool:
+
 
     blockNum = index % len(dc.cache)
     old = t
@@ -435,14 +432,16 @@ def accessWriteBack(dc: DC, address: int, tag: int, offset: int, index: int, typ
     for i, bSet in enumerate(dc.cache[blockNum]):        
         if bSet == -1:
             dc.cache[blockNum][i] = (tag, index, offset, t)
-            if type == "W":
-                return 5
-            return 4
+            #if type == "W":
+            dc.ref +=1
+            dc.miss +=1
+            return False
         elif bSet[0] == tag:
             dc.cache[blockNum][i] = (tag, index, offset, t)
-            if type == "W":
-                return 2
-            return 1
+            #if type == "W":
+                #dc.ref +=1
+            dc.hits +=1
+            return True
         else:
             if old > bSet[3]:
                 old = bSet[3]
@@ -451,8 +450,12 @@ def accessWriteBack(dc: DC, address: int, tag: int, offset: int, index: int, typ
         if bSet[3] == old:
             dc.cache[blockNum][i] = (tag, index, offset, t)
             if type == "W":
-                return 3
-            return 0
+                dc.ref +=1  
+            dc.ref +=1
+            dc.miss +=1
+            return False
+
+
         
 def accessWriteThrough(dc: DC, address: int, tag: int, offset: int, index: int, type: str, t: float) -> int:
     blockNum = index % len(dc.cache)
@@ -462,10 +465,15 @@ def accessWriteThrough(dc: DC, address: int, tag: int, offset: int, index: int, 
     for i, bSet in enumerate(dc.cache[blockNum]):        
         if bSet == -1:
             if type == "W":
+                dc.miss +=1
+                dc.ref +=1
                 return 0
+            dc.miss +=1
+            dc.ref +=1
             dc.cache[blockNum][i] = (tag, index, offset, t)
             return 0
         elif bSet[0] == tag:
+            dc.hits +=1
             dc.cache[blockNum][i] = (tag, index, offset, t)
             return 1
         else:
@@ -473,10 +481,14 @@ def accessWriteThrough(dc: DC, address: int, tag: int, offset: int, index: int, 
                 old = bSet[3]
 
     if type == "W":
+        dc.miss +=1
+        dc.ref +=1
         return 0
 
     for i, bSet in enumerate(dc.cache[blockNum]):
         if bSet[3] == old:
+            dc.miss +=1
+            dc.ref +=1
             dc.cache[blockNum][i] = (tag, index, offset, t)
             return 0
 
@@ -494,12 +506,22 @@ if __name__ == "__main__":
     initialize(tlb, dc, l2, pt, options)
 
     dcAccess = None
+
+    l2Access = None
+
+    if l2.writeBack:
+        l2Access = accessWriteBack
+    else:
+        l2Access = accessWriteThrough
+        if dc.writeBack:
+            l2Access = accessWriteBack
+
     if dc.writeBack:
         dcAccess = accessWriteBack
     else:
         dcAccess = accessWriteThrough
 
-    l2Access = None
+
 
     accessfunction = dcOnly
 
@@ -522,7 +544,7 @@ if __name__ == "__main__":
         addNum = int(address, 16)
 
         if (addNum >> pt.offset) > pt.pageSize or (addNum >> pt.index + pt.offset):
-            print(f"hierarchy: virtual address {hex(addNum)[2:]} is too large")
+            print(f"hierarchy: virtual address {hex(addNum)[2:]} is too large", file=sys.stderr)
             exit(2)
 
         pageMask = (1 << pt.offset) - 1
@@ -534,7 +556,7 @@ if __name__ == "__main__":
         elif acctype == "W":
             writes +=1 
         else:
-            print("hierarchy: unexpected access type")
+            print("hierarchy: unexpected access type", file=sys.stderr)
             exit(2)
 
         t = time()
@@ -552,7 +574,7 @@ if __name__ == "__main__":
                 tlbTag = hex(tlbTag)[2:]
                 tlbIndex = hex(tlbIndex)[2:]
 
-        dcTag, dcIndex, dcRes, strl2Tag, strl2Index, l2Res = accessfunction(dc, addNum, acctype, pageOffset, t, dcAccess, l2)
+        dcTag, dcIndex, dcRes, strl2Tag, strl2Index, l2Res = accessfunction(dc, addNum, acctype, pageOffset, t, dcAccess, l2, l2Access)
 
         if l2Res == "":
             strl2Index = ""
@@ -610,6 +632,10 @@ if __name__ == "__main__":
     rwRat = reads/(reads + writes)
     print(f"{'Ratio of reads':<17}: {rwRat:6f}")
     print("")
+
+    mainRef = dc.ref
+    if l2.active:
+        mainRef = l2.ref
 
     print(f"{'main memory refs':<17}: {mainRef}")
     print(f"{'page table refs':<17}: {pageRef}")
